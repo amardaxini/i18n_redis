@@ -9,7 +9,7 @@ Gem is use full migrate existing YAML based i18n solution to Redis based solutio
 
 ### Methods
 - Connect to redis databse using redis gem 
-  > I18nRedis.connect
+   `I18nRedis.connect`
 
 - Convert Existing YAML To Redis Database It can be use full for any YAML to Redis
 	> I18nRedis.yaml_to_redis(yaml_file_path)
