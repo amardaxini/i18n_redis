@@ -1,10 +1,9 @@
 require 'rubygems'
 require 'redis'
-require "i18n_redis/version"
+require_relative "i18n_redis/version"
 
 
 module I18nRedis
-
 
 # Connect To Redis
  def self.connect(args={})
@@ -29,7 +28,7 @@ module I18nRedis
   #  errors:
   #    template:
   #      header: "%{count} errors prohibited this %{model} from being saved"
-  # This method generates folloeing key and set its respective value
+  # This method generates following key and set its respective value
   # en.errors.template.header="%{count} errors prohibited this %{model} from being saved"
   def self.add_value_to_redis(yaml_hash,yaml_key)
     if yaml_hash.is_a?(Hash)
