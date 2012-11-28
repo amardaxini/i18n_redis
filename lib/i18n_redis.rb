@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'redis'
-require 'debugger'
 require "i18n_redis/version"
 
 
