@@ -18,6 +18,8 @@ module I18nRedis
     if File.exist?(file_name)
       yaml_hash = YAML::load(File.open(file_name))
       yaml_hash.each do |k,v|
+        #have to force key to_string because of some funny keys (eg. true/false)
+        k = k.to_s
       # if yaml data  contain further nested then create nestedkey or add key to redis
         self.add_value_to_redis(yaml_hash[k],k)
       end
@@ -33,6 +35,11 @@ module I18nRedis
   def self.add_value_to_redis(yaml_hash,yaml_key)
     if yaml_hash.is_a?(Hash)
       yaml_hash.each do |key,value|
+        key = key.to_s
+        value = value.to_s
+        if value == ""
+          value = "MISSING_TRANSLATION"
+        end
        if yaml_hash[key].is_a?(Hash)
          add_value_to_redis(yaml_hash[key],yaml_key+"."+key)
        else
@@ -40,7 +47,11 @@ module I18nRedis
        end
       end
     else
-     create(yaml_key,yaml_hash)
+      yaml_hash = yaml_hash.to_s
+      if yaml_hash == ""
+        yaml_hash = "MISSING_TRANSLATION"
+      end
+      create(yaml_key,yaml_hash)
     end
   end
 
@@ -104,14 +115,29 @@ module I18nRedis
   # en to us
 
   def self.copy_locale_to_other(src_locale,dest_locale)
-    src_keys= find_all("#{master_locale}.*")
+    src_keys= find_all("#{src_locale}.*")
     src_keys.each do |key|
       clone_key = "#{dest_locale}.#{key.split('.').drop(1).join(".")}"
       create(clone_key,$i18n_redis.get(key))
     end
   end
 
-  def find_all_for_locale(locale)
+  # Clone only the keys that are missing from one locale to another
+  # Example:
+  # you have en.roles.administrator: administrator it copies empty string to the
+  # desired language like:
+  # es.roles.administrator: ""
+
+  def self.create_missing_keys_for_locale(src_locale="en",dest_locale, key_value)
+    # first we get all the keys for src locale and omit the locale
+    src_keys = self.find_all_for_locale(src_locale).map {|k| k.split('.').drop(1).join('.')}
+    dst_keys = self.find_all_for_locale(dest_locale).map {|k| k.split('.').drop(1).join('.')}
+    diff_keys = src_keys - dst_keys
+    diff_keys.each do |k|
+      self.add(k, key_value, dest_locale)
+    end
+  end
+  def self.find_all_for_locale(locale)
     self.find_all("#{locale}.*")
   end
 
@@ -125,7 +151,7 @@ module I18nRedis
   end
 
  # add key
-  def add(key,value,locale)
+  def self.add(key,value,locale)
     key = "#{locale}.#{key}" if locale
     self.create(key,value)
   end
