@@ -66,6 +66,10 @@ Find Key
  Clone data for all locale It will load master data to all present locale
 
     I18nRedis.clone_data_for_all_locale(i18n_key,master_locale="en")
+    
+ Update Missing key from master data      
+ 
+    I18nRedis.create_missing_keys_for_locale(src_locale="en",dest_locale, key_value)    
 
  Search and Replace I18n Value 
 
